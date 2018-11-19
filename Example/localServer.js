@@ -84,7 +84,7 @@ function init() {
 
 function handleRequest(request, response, pool) {
   var urlparts = request.url.split("/");
-  var deptid = urlparts[1];
+  var argIsbn = urlparts[1];
 
   htmlHeader(
     response,
@@ -92,15 +92,15 @@ function handleRequest(request, response, pool) {
     "Example using node-oracledb driver"
   );
 
-  if (deptid == 'favicon.ico') {
+  if (argIsbn == 'favicon.ico') {
     htmlFooter(response);
     return;
   }
 
-  if (deptid != parseInt(deptid)) {
+  if (argIsbn != parseInt(argIsbn)) {
     handleError(
       response,
-      'URL path "' + deptid + '" is not an integer.  Try http://localhost:' + httpPort + '/30',
+      'URL path "' + argIsbn + '" is not an integer.  Try http://localhost:' + httpPort + '/30',
       null
     );
 
@@ -109,19 +109,20 @@ function handleRequest(request, response, pool) {
 
   // Checkout a connection from the pool
   pool.getConnection(function(err, connection) {
+
     if (err) {
       handleError(response, "getConnection() error", err);
       return;
     }
 
-    // console.log("Connections open: " + pool.connectionsOpen);
-    // console.log("Connections in use: " + pool.connectionsInUse);
+    //console.log("Connections open: " + pool.connectionsOpen);
+    //console.log("Connections in use: " + pool.connectionsInUse);
 
     connection.execute(
-      `SELECT AUTHOR, TITLE, ISBN
+      `SELECT ISBN
        FROM BOOKS
-       WHERE ISBN = :ib`,
-      ["1588345297"],  // bind value for :id
+       WHERE ISBN = :isbn`,
+      [argIsbn],  // bind value for :isbn
       function(err, result) {
         if (err) {
           connection.close(function(err) {
@@ -134,8 +135,8 @@ function handleRequest(request, response, pool) {
           handleError(response, "execute() error", err);
           return;
         }
-
-        displayResults(response, result, deptid);
+		console.log("Results in..." + result.rows);
+        displayResults(response, result, argIsbn);
 
         /* Release the connection back to the connection pool */
         connection.close(function(err) {
@@ -161,8 +162,8 @@ function handleError(response, text, err) {
 }
 
 // Display query results
-function displayResults(response, result, deptid) {
-  response.write("<h2>" + "Employees in Department " + deptid + "</h2>");
+function displayResults(response, result, argIsbn) {
+  response.write("<h2>" + "Employees in Department " + argIsbn + "</h2>");
   response.write("<table>");
 
   // Column Title
