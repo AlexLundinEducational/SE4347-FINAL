@@ -39,7 +39,7 @@
 var http = require('http');
 var oracledb = require('oracledb');
 var dbConfig = require('./dbconfig.js');
-var httpPort = 1512;
+var httpPort = 3001;
 
 // Main entry point.  Creates a connection pool, on callback creates an
 // HTTP server that executes a query based on the URL parameter given.
@@ -119,7 +119,7 @@ function handleRequest(request, response, pool) {
     //console.log("Connections in use: " + pool.connectionsInUse);
 
     connection.execute(
-      `SELECT ISBN
+      `SELECT ISBN, AUTHOR, TITLE
        FROM BOOKS
        WHERE ISBN = :isbn`,
       [argIsbn],  // bind value for :isbn
@@ -163,7 +163,7 @@ function handleError(response, text, err) {
 
 // Display query results
 function displayResults(response, result, argIsbn) {
-  response.write("<h2>" + "Employees in Department " + argIsbn + "</h2>");
+  response.write("<h2>" + "ISBN from booksearch " + argIsbn + "</h2>");
   response.write("<table>");
 
   // Column Title
